@@ -1,10 +1,10 @@
 import { replaceSensitive, repeatReplace, safeJSON } from './util';
 export default {
     nogetValue: 'noget', // 某些变量未获取到值时将用此变量值替换
-    printError: true, // 当捕获到异常后是否在控制台打印？
+    printError: false, // 当捕获到异常后是否在控制台打印？
     dsn: '',
-    environment: 'test', // 环境变量值
-    release: '1.0', // 当前小程序版本
+    environment: Env.type, // 环境变量值
+    release: Env.version, // 当前小程序版本
     requestHandler: wx.request, // request函数
     simplifyHandler(data, type, subType, target) {
         // 数据简化处理函数
@@ -35,7 +35,7 @@ export default {
     ignoreErrors: [], // 排除异常正则表达式列表，匹配异常message
     breadcrumbs: { // 需要对系统的哪些操作进行面包屑监控？
         console: {
-            arguments: 'simplify' // false=不记录，simplify=记录简化后的数据，full=记录完整的数据
+            arguments: 'false' // false=不记录，simplify=记录简化后的数据，full=记录完整的数据
         }, // console相关函数执行后需要进行监控
         request: {
             arguments: 'simplify', // false=不记录，simplify=记录简化后的数据，full=记录完整的数据
@@ -64,7 +64,7 @@ export default {
     autoCapture: { // 需要对系统的哪些操作进行自动异常捕获？
         appOnError: true, // 捕获app.onError中的异常
         appOnPageNotFound: true, // 捕获app.onPageNotFound 中的异常
-        console: true, // 捕获console.error中的异常
+        console: false, // 捕获console.error中的异常
         request: {
             arguments: 'simplify', // false=不记录，simplify=记录简化后的数据，full=记录完整的数据
             result: 'simplify'

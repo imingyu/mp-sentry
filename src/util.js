@@ -101,6 +101,9 @@ export const getSentryContexts = (NOGET) => {
 }
 
 export const getEntityName = (vm, defaultVal) => {
+    if (!vm) {
+        return ''
+    }
     if (vm.$constructorName) {
         return vm.$constructorName;
     }

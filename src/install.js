@@ -8,6 +8,16 @@ import { supportRewrite, getSentryContexts, getSysInfo, runHook, uuid, isSyncApi
 // TODO: 拦截setTimeout等原生函数
 // TODO: ui动作（tap/input等）添加面包屑
 
+const orgConsole = {};
+
+const nativeConsole = (type, ...args) => {
+    if (orgConsole[type]) {
+        return orgConsole[type].apply(orgConsole, args);
+    } else {
+        console[type].apply(console, args);
+    }
+}
+
 // merge出最后的配置对象
 const config = Object.assign({}, SentryConfig, {
     defaultIntegrations: false,
@@ -114,7 +124,14 @@ const filterData = (type, data) => {
     }
     return allow ? data : (Array.isArray(data) ? [] : null);
 }
+global.sds = [];
 const captureException = (error, tags, extra) => {
+    global.sds.push(error);
+    if (error.__sentry__) return;
+    error.__sentry__ = true;
+    if (SentryConfig.printError) {
+        nativeConsole('error', error, { useNative: true });
+    }
     Sentry.configureScope(scope => {
         scope.setLevel('error');
         if (tags) {
@@ -132,6 +149,7 @@ const captureException = (error, tags, extra) => {
     });
 }
 const captureAppOnError = err => {
+    if (err.indexOf('[captureOf') !== -1) return;
     const arr = err.split('\n');
     const error = new Error(arr[1]);
     error.name = arr[0];
@@ -363,6 +381,7 @@ const mixinMergeHooks = {
     }],
     methodExecError: [function (batch, funName, args, error, ctx) {
         ctx = ctx || this;
+        error.message = `[captureOfMixin]${error.message}`;
         sentryMethod('error', batch, funName, args, null, error, ctx);
     }]
 };
@@ -485,15 +504,17 @@ if (SentryConfig.mixinMergeHooks && SentryConfig.mixinMergeHooks.addMixin) {
                                 args[0] = args[0] || {};
                                 const orgSuccesss = args[0].success;
                                 const orgFail = args[0].fail;
-                                args[0].success = function (...resArgs) {
-                                    runHook(mixinMergeHooks, 'methodExecAfter', [batch, apiName, args, resArgs[0], orgWx]);
-                                    return orgSuccesss.apply(null, resArgs);
-                                }
-                                args[0].fail = function (...resArgs) {
-                                    const error = new Error(resArgs[0] && resArgs[0].errMsg ? resArgs[0].errMsg : '未知错误');
-                                    error.original = resArgs[0];
-                                    runHook(mixinMergeHooks, 'methodExecError', [batch, apiName, args, error, orgWx]);
-                                    return orgFail.apply(null, resArgs);
+                                if (Object.prototype.toString.call(args[0]) === '[object Object]') {
+                                    args[0].success = function (...resArgs) {
+                                        runHook(mixinMergeHooks, 'methodExecAfter', [batch, apiName, args, resArgs[0], orgWx]);
+                                        return orgSuccesss && orgSuccesss.apply(null, resArgs);
+                                    }
+                                    args[0].fail = function (...resArgs) {
+                                        const error = new Error(resArgs[0] && resArgs[0].errMsg ? resArgs[0].errMsg : '未知错误');
+                                        error.original = resArgs[0];
+                                        runHook(mixinMergeHooks, 'methodExecError', [batch, apiName, args, error, orgWx]);
+                                        return orgFail && orgFail.apply(null, resArgs);
+                                    }
                                 }
                             }
                             const result = orgWx[apiName].apply(orgWx, args);
@@ -509,7 +530,7 @@ if (SentryConfig.mixinMergeHooks && SentryConfig.mixinMergeHooks.addMixin) {
             wx = Sentry.Wx = rewriteWx;
         }
     } else {
-        console.warn('小程序相关原生对象及函数无法被重写');
+        nativeConsole('warn', '小程序相关原生对象及函数无法被重写');
         setTimeout(() => {
             captureException(new Error('小程序相关原生对象及函数无法被重写', null, {
                 sysInfo: getSysInfo()
@@ -517,10 +538,8 @@ if (SentryConfig.mixinMergeHooks && SentryConfig.mixinMergeHooks.addMixin) {
         });
     }
 }
-
 // 重写console对象
 if (HookNative.consoleBreadcrumbs || HookNative.consoleAutoCapture) {
-    const orgConsole = {};
     Object.keys(console).forEach(prop => {
         orgConsole[prop] = console[prop];
         const orgFunction = console[prop];
