@@ -3,8 +3,8 @@ export default {
     nogetValue: 'noget', // 某些变量未获取到值时将用此变量值替换
     printError: false, // 当捕获到异常后是否在控制台打印？
     dsn: '',
-    environment: Env.type, // 环境变量值
-    release: Env.version, // 当前小程序版本
+    environment: '', // 环境变量值
+    release: '', // 当前小程序版本
     requestHandler: wx.request, // request函数
     simplifyHandler(data, type, subType, target) {
         // 数据简化处理函数
