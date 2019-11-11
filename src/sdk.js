@@ -1,17 +1,20 @@
-export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
-    /*! @sentry/browser 5.7.0 (ea5cadb1) | https://github.com/getsentry/sentry-javascript */
+export default (XMLHttpRequest, MAX_BREADCRUMBS = 100) => {
+    // 下载@sentry/browser包，将~/@sentry/browser/build/bundle.js文件的内容复制到下面;
+    // 找到MAX_BREADCRUMBS变量的定义处，注释掉
+    // 然后最后返回Sentry对象
+    /*! @sentry/browser 5.7.1 (821435f5) | https://github.com/getsentry/sentry-javascript */
     var Sentry = (function (exports) {
         /*! *****************************************************************************
         Copyright (c) Microsoft Corporation. All rights reserved.
         Licensed under the Apache License, Version 2.0 (the "License"); you may not use
         this file except in compliance with the License. You may obtain a copy of the
         License at http://www.apache.org/licenses/LICENSE-2.0
-    
+
         THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
         KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
         WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
         MERCHANTABLITY OR NON-INFRINGEMENT.
-    
+
         See the Apache Version 2.0 License for specific language governing permissions
         and limitations under the License.
         ***************************************************************************** */
@@ -355,6 +358,7 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
             return SentryError;
         }(Error));
 
+        /// <reference lib="dom" />
         /**
          * Checks whether given value's type is one of a few Error or Error-like
          * {@link isError}.
@@ -487,6 +491,7 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
             return isPlainObject(wat) && 'nativeEvent' in wat && 'preventDefault' in wat && 'stopPropagation' in wat;
         }
 
+        /// <reference lib="dom" />
         /**
          * Requires a module which is protected _against bundler minification.
          *
@@ -1223,7 +1228,6 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
                 var _this = this;
                 this._state = States.PENDING;
                 this._handlers = [];
-
                 /** JSDoc */
                 this._resolve = function (value) {
                     _this._setResult(States.RESOLVED, value);
@@ -1319,7 +1323,7 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
                                 }
                                 resolve(resolvedCollection);
                             })
-                            .catch(reject);
+                            .then(null, reject);
                     });
                 });
             };
@@ -1412,7 +1416,7 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
             /**
              * Add a promise to the queue.
              *
-             * @param task Can be any Promise<T>
+             * @param task Can be any PromiseLike<T>
              * @returns The original promise.
              */
             PromiseBuffer.prototype.add = function (task) {
@@ -1425,8 +1429,8 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
                 }
                 task
                     .then(function () { return _this.remove(task); })
-                    .catch(function () {
-                        return _this.remove(task).catch(function () {
+                    .then(null, function () {
+                        return _this.remove(task).then(null, function () {
                             // We have to add this catch here otherwise we have an unhandledPromiseRejection
                             // because it's a new Promise chain.
                         });
@@ -1436,7 +1440,7 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
             /**
              * Remove a promise to the queue.
              *
-             * @param task Can be any Promise<T>
+             * @param task Can be any PromiseLike<T>
              * @returns Removed promise.
              */
             PromiseBuffer.prototype.remove = function (task) {
@@ -1468,7 +1472,7 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
                             clearTimeout(capturedSetTimeout);
                             resolve(true);
                         })
-                        .catch(function () {
+                        .then(null, function () {
                             resolve(true);
                         });
                 });
@@ -1719,12 +1723,12 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
                         if (isThenable(result)) {
                             result
                                 .then(function (final) { return _this._notifyEventProcessors(processors, final, hint, index + 1).then(resolve); })
-                                .catch(reject);
+                                .then(null, reject);
                         }
                         else {
                             _this._notifyEventProcessors(processors, result, hint, index + 1)
                                 .then(resolve)
-                                .catch(reject);
+                                .then(null, reject);
                         }
                     }
                 });
@@ -2819,7 +2823,7 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
                         eventId = finalEvent && finalEvent.event_id;
                         _this._processing = false;
                     })
-                    .catch(function (reason) {
+                    .then(null, function (reason) {
                         logger.error(reason);
                         _this._processing = false;
                     });
@@ -2842,7 +2846,7 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
                         eventId = finalEvent && finalEvent.event_id;
                         _this._processing = false;
                     })
-                    .catch(function (reason) {
+                    .then(null, function (reason) {
                         logger.error(reason);
                         _this._processing = false;
                     });
@@ -2861,7 +2865,7 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
                         eventId = finalEvent && finalEvent.event_id;
                         _this._processing = false;
                     })
-                    .catch(function (reason) {
+                    .then(null, function (reason) {
                         logger.error(reason);
                         _this._processing = false;
                     });
@@ -3084,7 +3088,7 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
                                 reject('`beforeSend` threw an error, will not send event.');
                             }
                         })
-                        .catch(function () {
+                        .then(null, function () {
                             reject('`beforeSend` threw an error, will not send event.');
                         });
                 });
@@ -3104,7 +3108,7 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
                         _this._getBackend().sendEvent(processedEvent);
                         resolve(processedEvent);
                     })
-                    .catch(function (e) {
+                    .then(null, function (e) {
                         reject("beforeSend rejected with " + e);
                     });
             };
@@ -3168,7 +3172,7 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
              * @inheritDoc
              */
             BaseBackend.prototype.sendEvent = function (event) {
-                this._transport.sendEvent(event).catch(function (reason) {
+                this._transport.sendEvent(event).then(null, function (reason) {
                     logger.error("Error while sending event: " + reason);
                 });
             };
@@ -3906,7 +3910,7 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
         }(BaseBackend));
 
         var SDK_NAME = 'sentry.javascript.browser';
-        var SDK_VERSION = '5.7.0';
+        var SDK_VERSION = '5.7.1';
 
         /**
          * The Sentry Browser SDK Client.
@@ -4728,7 +4732,7 @@ export default (XMLHttpRequest, MAX_BREADCRUMBS) => {
                                 });
                                 return response;
                             })
-                            .catch(function (error) {
+                            .then(null, function (error) {
                                 Breadcrumbs.addBreadcrumb({
                                     category: 'fetch',
                                     data: fetchData,
