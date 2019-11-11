@@ -1,5 +1,5 @@
 # mp-sentry
-小程序Sentry SDK
+小程序Sentry SDK，类库大小90k左右
 
 ## 使用方式
 - 将`src`目录放入你的项目代码中；
