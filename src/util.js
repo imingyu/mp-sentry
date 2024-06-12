@@ -2,7 +2,7 @@ export const isSyncApi = apiName => apiName.indexOf('Sync') !== -1 || apiName.st
 // 解析url 的search部分
 export const parseUrlSearch = serach => {
     const arr = serach.split('?');
-    return arr[1].split('&').reduce((sum, item) => {
+    return (arr.length>1 ? arr[1] : arr[0]).split('&').reduce((sum, item) => {
         const ar = item.split('=');
         sum[decodeURIComponent(ar[0])] = decodeURIComponent(ar[1]);
         return sum;
